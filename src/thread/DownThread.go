@@ -5,41 +5,53 @@ import (
 	"fmt"
 	"strconv"
 	"os"
-	"io"
 )
 
-func DownLoadThread(c chan string,url,filename string, i,block int){
-	start:=0
-	end:=0
+func DownLoadThread(c chan string,url,filename string, i,block int64){
+
 	//Set a header to a request first. Pass the request to a client.
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", url,nil)
 	if err!=nil{
 		fmt.Println(err)
 	}
-	start=i*block
-	end=(i+1)*block
-	req.Header.Set("Range","bytes="+strconv.Itoa(start)+"-"+strconv.Itoa(end)+"")
+	start:=i*block
+	end:=(i+1)*block
+	// set http header filed: key = "Range" value = "..."
+	req.Header.Set("Range","bytes="+strconv.FormatInt(start,10)+"-"+strconv.FormatInt(end,10)+"")
 	resp, err := client.Do(req)
 	if err!=nil{
 		fmt.Println(err)
+		return
 	}
 	defer resp.Body.Close()
 	
-	// TODO: check file existence first with io.IsExist
-	// return a File object
-	output, err := os.Create(filename)
-	if err != nil {
-		fmt.Println("Error while creating", filename, "-", err)
-		return
+	// open the file, if not exist create it
+	output,err:=os.Open(filename)
+	if err!=nil{
+		output,err=os.Create(filename)
+		if err!=nil{
+			fmt.Println(err)
+			return
+		}
 	}
 	defer output.Close()
 	
-	n, err := io.Copy(output, resp.Body)
+//	n, err := io.Copy(output, resp.Body)
+	var bytes = make([] byte,end-start)
+	n,err:=resp.Body.Read(bytes)
 	if err != nil {
-		fmt.Println("Error while downloading", url, "-", err)
+		fmt.Println("Error while reading bytes", err)
 		return
 	}
-	s:="Thread "+strconv.Itoa(i)+" Done, received: "+strconv.Itoa(int(n))+" bytes"
+	if output==nil{
+		fmt.Println("output is nil")
+	}
+	n,err=output.WriteAt(bytes,start)
+	if err != nil {
+		fmt.Println("Error while writting", url, "-", err)
+		return
+	}
+	s:="Thread "+strconv.FormatInt(i,10)+" Done, received: "+strconv.Itoa(n)+" bytes"
 	c <- s
 }

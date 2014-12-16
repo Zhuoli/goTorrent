@@ -20,16 +20,16 @@ func downloadFromUrl(url string, threadsNum int) {
 	defer response.Body.Close()
 	length:=response.ContentLength
 	fmt.Println("contentlength : " + strconv.Itoa(int(length))+"byte")
-	block:=0
+	block:=int64(0)
 	if length%int64(threadsNum)!=0{
-		block=int(length/int64(threadsNum))+threadsNum
+		block=length/int64(threadsNum)+int64(threadsNum)
 	}else{
-		block=int(length/int64(threadsNum))
+		block=length/int64(threadsNum)
 	}
-	fmt.Println("block size: " + strconv.Itoa(block)+"byte")
+	fmt.Println("block size: " + strconv.FormatInt(block,10)+"byte")
 	c:=make(chan string,threadsNum)
 	for i:=0;i<threadsNum;i++{
-		go thread.DownLoadThread(c,url,fileName,i,block)
+		go thread.DownLoadThread(c,url,fileName,int64(i),block)
 	}
 	
 	for i:=0;i<threadsNum;i++{
