@@ -6,6 +6,7 @@ import (
 	"strings"
 	"thread"
 	"strconv"
+	"os"
 )
 
 func downloadFromUrl(url string, threadsNum int) {
@@ -15,9 +16,10 @@ func downloadFromUrl(url string, threadsNum int) {
 	response,err:=http.Get(url)
 	if err!=nil{
 		fmt.Println("Error while downloading", url, "-", err)
-		return
+		return 
 	}
 	defer response.Body.Close()
+//	response.Header.Get
 	length:=response.ContentLength
 	fmt.Println("contentlength : " + strconv.Itoa(int(length))+"byte")
 	block:=int64(0)
@@ -28,14 +30,24 @@ func downloadFromUrl(url string, threadsNum int) {
 	}
 	fmt.Println("block size: " + strconv.FormatInt(block,10)+"byte")
 	c:=make(chan string,threadsNum)
+	// open the file, if not exist create it
+	File,err:=os.Create(fileName)
+	buf:=make([]byte, length)
+	if err!=nil{	
+		panic(err)
+		}
+	defer File.Close()
 	for i:=0;i<threadsNum;i++{
-		go thread.DownLoadThread(c,url,fileName,int64(i),block)
+		go thread.DownLoadThread(c,buf,url,fileName,int64(i),block)
 	}
 	
 	for i:=0;i<threadsNum;i++{
 		fmt.Println(<-c)
 	}
-	 
+	_,err=File.Write(buf)
+	if err!=nil{
+		panic(err)
+	}
 	fmt.Println("content length: "+strconv.Itoa(int(response.ContentLength/1024))+"KB")
 }
 
@@ -46,6 +58,6 @@ func getFileName(url string) (name string){
 }
 
 func main() {
-	url := "http://download.nextag.com/apache/maven/maven-3/3.2.3/binaries/apache-maven-3.2.3-bin.tar.gz"
+	url := "http://upload.wikimedia.org/wikipedia/commons/2/2f/Space_Needle002.jpg"
 	downloadFromUrl(url,5)
 }

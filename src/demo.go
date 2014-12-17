@@ -1,8 +1,8 @@
-package src
+package main
 
 import (
 	"fmt"
-//	"io"
+	"io"
 	"net/http"
 	"os"
 	"strings"
@@ -29,17 +29,17 @@ func downloadFromUrl(url string) {
 		return
 	}
 	defer response.Body.Close()
-//
-//	n, err := io.Copy(output, response.Body)
-//	if err != nil {
-//		fmt.Println("Error while downloading", url, "-", err)
-//		return
-//	}
-//
-//	fmt.Println(n, "bytes downloaded.")
+
+	n, err := io.Copy(output, response.Body)
+	if err != nil {
+		fmt.Println("Error while downloading", url, "-", err)
+		return
+	}
+
+	fmt.Println(n, "bytes downloaded.")
 }
 
 func main() {
-	url := "http://download.nextag.com/apache/maven/maven-3/3.2.3/binaries/apache-maven-3.2.3-bin.tar.gz"
+	url := "http://upload.wikimedia.org/wikipedia/commons/2/2f/Space_Needle002.jpg"
 	downloadFromUrl(url)
 }

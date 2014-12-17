@@ -4,10 +4,9 @@ import (
 	"net/http"
 	"fmt"
 	"strconv"
-	"os"
 )
 
-func DownLoadThread(c chan string,url,filename string, i,block int64){
+func DownLoadThread(c chan string,buf []byte,url,filename string, i,block int64){
 
 	//Set a header to a request first. Pass the request to a client.
 	client := &http.Client{}
@@ -26,32 +25,15 @@ func DownLoadThread(c chan string,url,filename string, i,block int64){
 	}
 	defer resp.Body.Close()
 	
-	// open the file, if not exist create it
-	output,err:=os.Open(filename)
-	if err!=nil{
-		output,err=os.Create(filename)
-		if err!=nil{
-			fmt.Println(err)
-			return
-		}
-	}
-	defer output.Close()
-	
-//	n, err := io.Copy(output, resp.Body)
+
 	var bytes = make([] byte,end-start)
 	n,err:=resp.Body.Read(bytes)
 	if err != nil {
 		fmt.Println("Error while reading bytes", err)
 		return
 	}
-	if output==nil{
-		fmt.Println("output is nil")
-	}
-	n,err=output.WriteAt(bytes,start)
-	if err != nil {
-		fmt.Println("Error while writting", url, "-", err)
-		return
-	}
+	copy(buf[start:end],bytes[:])
 	s:="Thread "+strconv.FormatInt(i,10)+" Done, received: "+strconv.Itoa(n)+" bytes"
 	c <- s
 }
+
