@@ -4,12 +4,14 @@ import (
 	"fmt"
 	"strings"
 	"strconv"
+	"os"
 )
 type CONN struct{
 	http	*HTTP
 	IsAcceptRange	bool
 	HasContentLength bool
 	Content_length	int64
+	IsTransfer_Encoding bool
 }
 const (
     DEBUG=true
@@ -37,13 +39,17 @@ func GetConn(url string)*CONN{
 		if err!=nil{
 			panic("Error, incorrect content-length"+intstr)
 		}
+	}else if strings.Contains(response,"Transfer-Encoding: chunked"){
+		conn.IsTransfer_Encoding=true
 	}
 	if DEBUG{
 		fmt.Println(fmt.Sprintf("Accept-Range: %t",conn.IsAcceptRange))
 		if conn.HasContentLength{
 			fmt.Println(fmt.Sprintf("Content-length: %d",conn.Content_length))
-			}else{
-			fmt.Println("Don't has Content-length")
+		}else if conn.IsTransfer_Encoding{
+			fmt.Println("Transfer_Encoding: bytes")
+		}else{
+			fmt.Println(response)
 		}
 	}
 	return conn
@@ -51,6 +57,14 @@ func GetConn(url string)*CONN{
 }
 
 func (this *CONN)WriteToFile(fileName string, c chan int){
-	this.http.WriteToFile(fileName,this.Content_length)
+	src,err:=os.Stat("./download")
+	if err!=nil || !src.IsDir(){
+		os.Mkdir("./download",0777)
+	}
+	if this.HasContentLength{
+		this.http.WriteToFileContentLength(fileName,this.Content_length)
+	}else if this.IsTransfer_Encoding{
+		this.http.WriteToFileTruncked(fileName)
+	}
 	c<-1
 }

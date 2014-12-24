@@ -127,8 +127,8 @@ func (this *HTTP) IsAcceptRange(headerResponse string) bool {
 
     return ret
 }
-func (this *HTTP) WriteToFile(outputFileName string,content_length int64) {
-    f, err := os.OpenFile(outputFileName, os.O_CREATE | os.O_WRONLY, 0664)
+func (this *HTTP) WriteToFileContentLength(outputFileName string,content_length int64) {
+    f, err := os.OpenFile("./download/"+outputFileName, os.O_CREATE | os.O_WRONLY, 0664)
     defer f.Close()
     if err != nil { panic(err) }
     data := make([]byte, BUFFER_SIZE)
@@ -149,4 +149,67 @@ func (this *HTTP) WriteToFile(outputFileName string,content_length int64) {
     }
     fmt.Println(fmt.Sprintf("Received %d bytes",offset))
     return
+}
+func (this *HTTP) WriteToFileTruncked(fileName string){
+    f, err := os.OpenFile("./download/"+fileName, os.O_CREATE | os.O_WRONLY, 0664)
+    defer f.Close()
+    if err != nil { panic(err) }
+    fileoffset:=0
+    // chunks
+    for {
+    	size:=this.getChunckSize()
+    	if size==0{
+    		break
+    	}
+    	// offset in chunk
+    	chunkoffset:=0
+    	for{
+	   	    data := make([]byte, 1)
+	    	n,err:=this.conn.Read(data)
+	    	if err!=nil{
+	    		if err!=io.EOF{
+	    			this.Error=err
+	    			panic(this.Error.Error())
+	    			return
+	    		}
+	    	}
+	    	//reach the end of this chunk
+	    	if chunkoffset+n>=size {
+	    		f.WriteAt(data[:n],int64(fileoffset+chunkoffset))
+		    	this.conn.Read(data)
+		    	this.conn.Read(data)
+	    		break
+	    	}else{
+	    		f.WriteAt(data[:n],int64(fileoffset+chunkoffset))
+	    	}
+	    	if err==io.EOF{return}
+	    	chunkoffset+=n
+    	}
+	    fileoffset+=size
+    }
+    fmt.Println(fmt.Sprintf("Received %d bytes",fileoffset))
+    return
+}
+func (this *HTTP)getChunckSize() int{
+	expr:=""
+	for{
+		data:=make([]byte,1)
+		n,err:=this.conn.Read(data)
+		if err != nil {
+            if err != io.EOF {
+                this.Error = err
+                fmt.Println("ERROR:", this.Error.Error())
+                return 0
+            }
+        }
+		if data[0] == '\r' {
+            continue
+        } else if data[0] == '\n' {
+        	break
+        }
+		expr+=string(data[:n])
+		
+	}
+	num,_:=strconv.ParseInt(expr,16,32)
+	return int(num)
 }
