@@ -24,6 +24,4 @@ func getHtmlHeader(url string)string{
 
 
 func main() {
-	var st int;
-	fmt.Println(st)
 }

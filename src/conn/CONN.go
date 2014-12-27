@@ -15,16 +15,18 @@ type CONN struct{
 }
 const (
     DEBUG=true
+    threadNum=4
 )
 
-func GetConn(url string)*CONN{
+func InitConn(url string)*CONN{
 	conn:=&CONN{}
 	http:=GetHttp(url)
-	defer http.conn.Close()
 	conn.http=http
-	if http.connect()==false{return nil}
-	http.Get(url,0,0)
-	response:=http.Response()
+	netconn,err:=http.connect()
+	defer netconn.Close()
+	if err!=nil{return nil}
+	http.Get(netconn,0,-1)
+	response:=http.Response(netconn)
 	if strings.Contains(response,"Accept-Ranges:"){
 		conn.IsAcceptRange=true
 	}
@@ -57,14 +59,39 @@ func GetConn(url string)*CONN{
 }
 
 func (this *CONN)WriteToFile(fileName string, c chan int){
+	fmt.Println("WriteToFile")
 	src,err:=os.Stat("./download")
 	if err!=nil || !src.IsDir(){
 		os.Mkdir("./download",0777)
 	}
 	if this.HasContentLength{
-		this.http.WriteToFileContentLength(fileName,this.Content_length)
+		this.RangeDownload(fileName)
 	}else if this.IsTransfer_Encoding{
 		this.http.WriteToFileTruncked(fileName)
 	}
 	c<-1
+}
+
+func (this *CONN)RangeDownload(filename string){
+	blocksize:=this.Content_length/threadNum+threadNum
+	receiver:=make([]chan int,threadNum)
+	for i:=0;i<threadNum;i++{
+		receiver[i]=make(chan int)
+		http:=&HTTP{
+			Protocol:this.http.Protocol,
+			Host:this.http.Host,
+			Path:this.http.Path,
+			Port:this.http.Port,
+			UserAgent:this.http.UserAgent,
+		}
+		end:=int64(i+1)*blocksize
+		if end>this.Content_length{
+			end=this.Content_length
+		}
+		go http.WriteToFileContentLength(receiver[i],filename,int64(i)*blocksize,end)
+	}
+	
+	for i:=0;i<threadNum;i++{
+		<-receiver[i]
+	}
 }
