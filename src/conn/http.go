@@ -9,7 +9,6 @@ import (
     "regexp"
     "strings"
     "strconv"
-//    "errors"
 )
 const (
 	BUFFER_SIZE=1024
@@ -21,7 +20,6 @@ type HTTP struct{
 	Port		int
 	Header		string
 	UserAgent	string
-//	conn 		net.Conn
 }
 
 func GetHttp(strUrl string)(*HTTP){
@@ -160,8 +158,8 @@ func (this *HTTP) WriteToFileContentLength(c chan int,outputFileName string,star
 func (this *HTTP) WriteToFileTruncked(fileName string){
 	conn,_:=this.connect()
 	this.Get(conn,0,-1)
-	res:=this.Response(conn)
-	fmt.Println(res)
+	_=this.Response(conn)
+//	fmt.Println(res)
     f, err := os.OpenFile("./download/"+fileName, os.O_CREATE | os.O_WRONLY, 0664)
     defer f.Close()
     if err != nil { panic(err) }

@@ -14,7 +14,7 @@ type CONN struct{
 	IsTransfer_Encoding bool
 }
 const (
-    DEBUG=true
+    DEBUG=false
     threadNum=4
 )
 
@@ -59,7 +59,6 @@ func InitConn(url string)*CONN{
 }
 
 func (this *CONN)WriteToFile(fileName string, c chan int){
-	fmt.Println("WriteToFile")
 	src,err:=os.Stat("./download")
 	if err!=nil || !src.IsDir(){
 		os.Mkdir("./download",0777)

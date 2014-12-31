@@ -1,4 +1,9 @@
 an GUI download tool wrote in GO!  
 
-Step1: implement http download using concurrency to speed up
+
+TODO
+=====
+- [x] http concurrency download
+- [ ] BitTorrent concurrency download
+- [ ] GUI 
 
