@@ -3,14 +3,16 @@ package main
 import (
 	"fmt"
 	"strings"
-	"conn"
 	"flag"
+	"os"
+	"conn"
+	"bitTorrent/bencode"
 )
 
 const(
 	DEBUG bool=false
 )
-
+// http download
 func downloadFromUrl(url string) {
 	fileName := getFileName(url)
 	fmt.Println("Downloading", url, "to", fileName)
@@ -19,6 +21,17 @@ func downloadFromUrl(url string) {
 	go conn.WriteToFile(fileName,c)
 	fmt.Println(<-c)
 	fmt.Println("DONE")
+}
+
+//BitTorrent seed download
+func downloadBitTorrent(seed string){
+	fmt.Println("torrent file: "+seed)
+	f,err:=os.Open(seed)
+	if err!=nil{
+		panic(err)
+	}
+	defer f.Close()
+	bencode.Decode(f)
 }
 
 func getFileName(url string) (name string){
@@ -33,10 +46,15 @@ func main() {
 //	url := "http://mirrors.sonic.net/apache/maven/maven-3/3.2.5/binaries/apache-maven-3.2.5-bin.tar.gz"
 //	url :="http://www.ccs.neu.edu/course/cs5500f14/policies.html"
 	url:=flag.String("url","","url address")
+	torrent:=flag.String("torrent","","bit-torrent seed")
 	flag.Parse()
-	if len(*url)==0{
+	if len(*url)!=0 {
+		downloadFromUrl(*url)
+	}else if len(*torrent)!=0{
+		downloadBitTorrent(*torrent)
+	}else{
 		fmt.Println("Error usage: ./client -url=")
+		fmt.Println("Error usage: ./client -torrent=")
 		return
 	}
-	downloadFromUrl(*url)
 }

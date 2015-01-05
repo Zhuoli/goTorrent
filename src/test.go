@@ -2,26 +2,17 @@ package main
 
 import (
 	"fmt"
-	"net/http"
-	"io/ioutil"
+	"sync"
 )
 
-func getHtmlHeader(url string)string{
-	response,err:=http.Get(url)
-	if err!=nil{
-		fmt.Println("Error while downloading", url, "-", err)
-		return "";
-	}
-	defer response.Body.Close()
-	
-	body, err := ioutil.ReadAll(response.Body)
-	if err!=nil{
-		panic(err)
-	}
-	return string(body);
-	
+type ST struct{
+	val	string
 }
 
 
 func main() {
+	
+	var tmp sync.Pool
+	el:=tmp.Get()
+	fmt.Println(el)
 }
