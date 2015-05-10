@@ -40,14 +40,26 @@ func getFileName(url string) (name string){
 	return fileName
 }
 
+/**
+	Client main method.
+	* Currently suport http downloading.
+	Usage: 
+	./clien -url=XX
+	./client -torrent=xx
+	Downloaded files will be stored under ./download
+**/
 func main() {
-//	url := "http://shakespeare.mit.edu/lll/full.html"
-//	url :="http://upload.wikimedia.org/wikipedia/commons/2/2f/Space_Needle002.jpg"
-//	url := "http://mirrors.sonic.net/apache/maven/maven-3/3.2.5/binaries/apache-maven-3.2.5-bin.tar.gz"
-//	url :="http://www.ccs.neu.edu/course/cs5500f14/policies.html"
+	
+	// Sets url parameter format 
 	url:=flag.String("url","","url address")
+	
+	// Sets torrent parameter format
 	torrent:=flag.String("torrent","","bit-torrent seed")
+	
+	// Parse the argument inputs from command line
 	flag.Parse()
+	
+	// Validate inputs
 	if len(*url)!=0 {
 		downloadFromUrl(*url)
 	}else if len(*torrent)!=0{
