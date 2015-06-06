@@ -10,6 +10,8 @@ import (
 )
 
 const(
+	
+	// DEBUG idenciate
 	DEBUG bool=false
 )
 // http download
