@@ -36,6 +36,11 @@ func downloadBitTorrent(seed string){
 	bencode.Decode(f)
 }
 
+/*
+	Get file name by parsing the given Url
+	Given: Url
+	Returns: File name
+*/
 func getFileName(url string) (name string){
 	tokens :=strings.Split(url,"/")
 	fileName:=tokens[len(tokens)-1]
@@ -58,15 +63,21 @@ func main() {
 	// Sets torrent parameter format
 	torrent:=flag.String("torrent","","bit-torrent seed")
 	
-	// Parse the argument inputs from command line
+	// Parses the argument inputs from command line
 	flag.Parse()
 	
 	// Validate inputs
 	if len(*url)!=0 {
+		
+		// Download from http url server
 		downloadFromUrl(*url)
 	}else if len(*torrent)!=0{
+		
+		// Download from BitTorrent seed
 		downloadBitTorrent(*torrent)
 	}else{
+		
+		// Error usage
 		fmt.Println("Error usage: ./client -url=")
 		fmt.Println("Error usage: ./client -torrent=")
 		return

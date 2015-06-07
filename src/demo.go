@@ -8,6 +8,10 @@ import (
 	"strings"
 )
 
+/*
+	Prototype Test
+*/
+
 func downloadFromUrl(url string) {
 	tokens := strings.Split(url, "/")
 	fileName := tokens[len(tokens)-1]

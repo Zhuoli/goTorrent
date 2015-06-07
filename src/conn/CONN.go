@@ -6,6 +6,10 @@ import (
 	"strconv"
 	"os"
 )
+
+/*
+	Connection structure
+*/
 type CONN struct{
 	http	*HTTP
 	IsAcceptRange	bool
@@ -13,11 +17,19 @@ type CONN struct{
 	Content_length	int64
 	IsTransfer_Encoding bool
 }
+
 const (
+	
+	// Debug identicator
     DEBUG=false
+    
+    // Number of Concurrency download threads 
     threadNum=4
 )
 
+/*
+	Connection Constructor
+*/
 func InitConn(url string)*CONN{
 	conn:=&CONN{}
 	http:=GetHttp(url)
